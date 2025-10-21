@@ -24,16 +24,27 @@
         margin-bottom: 12px;
       }
       .profile-btn {
-        padding: 8px 12px;
-        border-radius: 6px;
-        border: 1px solid #ddd;
-        background: white;
-        cursor: pointer;
+        padding: 10px 20px; /* Größe des Buttons */
+        border-radius: 12px; /* abgerundete Ecken */
+        border: none; /* keine Standard-Grenze */
+        background-color: gray; /* schöne grüne Farbe */
+        color: white; /* Textfarbe */
+        font-weight: bold; /* fettgedruckt */
+        cursor: pointer; /* Hand-Cursor beim Hover */
+        transition: all 0.3s ease; /* sanfte Animation bei Hover */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* leichter Schatten */
       }
+
+      .profile-btn:hover {
+        background-color: #1eac25; /* dunkleres Grün beim Hover */
+        transform: translateY(-2px); /* kleine Aufwärtsbewegung */
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* Schatten etwas verstärken */
+      }
+
       .profile-btn.active {
-        background: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
+        background-color: #45a049;
+        transform: translateY(0); /* zurück beim Klicken */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
       #controls {
         margin-left: auto;
@@ -90,11 +101,18 @@
         font-size: 0.85rem;
         color: #666;
       }
+
+      .buttons {
+        display: flex; /* Flexbox aktivieren */
+        justify-content: center; /* Horizontale Zentrierung */
+        gap: 46px; /* Abstand zwischen den Buttons */
+        margin-top: 20px; /* Optional: Abstand zum oberen Rand */
+      }
     </style>
   </head>
   <body>
     <header>
-      <h1>LoL Champions — Laura / Steven / Dennis</h1>
+      <h1>A - Z Challenge</h1>
       <div class="topbar-note">
         Klicke ein Bild → markiert als gewonnen (ausgegraut).
       </div>
@@ -109,7 +127,7 @@
       </div>
     </header>
 
-    <div>
+    <div class="buttons">
       <button class="profile-btn" data-player="laura">Laura</button>
       <button class="profile-btn" data-player="steven">Steven</button>
       <button class="profile-btn" data-player="dennis">Dennis</button>
@@ -118,6 +136,7 @@
         style="margin-left: 12px; color: #666; font-size: 0.95rem"
       ></span>
     </div>
+    <br />
 
     <main>
       <div id="champion-container" aria-live="polite"></div>
@@ -128,11 +147,6 @@
       <div>
         Speicherung:
         <strong id="storage-mode">Firebase (noch nicht verbunden)</strong>
-      </div>
-      <div style="margin-top: 6px">
-        Hinweis: Die App verwendet Riot Data Dragon zur Anzeige der
-        Championbilder. Du musst für Firebase ein Projekt anlegen und die Config
-        unten einfügen.
       </div>
     </footer>
 
@@ -268,7 +282,7 @@
         setStatus("Lade Champions ...");
         try {
           const version = await fetchLatestVersion();
-          modeIndicator.textContent = `DataDragon v${version}`;
+          //modeIndicator.textContent = `DataDragon v${version}`;
           const dataUrl = `https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`;
           const res = await fetch(dataUrl);
           const data = await res.json();
