@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>LoL Champions - Laura / Steven / Dennis</title>
+    <style>
+      :root {
+        --gap: 10px;
+        --thumb-size: 84px;
+      }
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial;
+        margin: 0;
+        padding: 20px;
+        background: #f6f7fb;
+        color: #111;
+      }
+      header {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .profile-btn {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background: white;
+        cursor: pointer;
+      }
+      .profile-btn.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+      }
+      #controls {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+      }
+      button.small {
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background: white;
+        cursor: pointer;
+      }
+      #champion-container {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fill,
+          minmax(var(--thumb-size), 1fr)
+        );
+        gap: var(--gap);
+        align-items: center;
+      }
+      .champ {
+        width: 100%;
+        aspect-ratio: 1/1;
+        object-fit: contain;
+        border-radius: 6px;
+        background: white;
+        padding: 6px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+        cursor: pointer;
+        display: block;
+        transition: transform 0.5s ease, filter 0.2s ease, opacity 0.2s ease;
+      }
+      .champ:hover {
+        transform: translateY(-4px);
+      }
+      .champ.won {
+        filter: grayscale(100%);
+        opacity: 0.55;
+      }
+      #status {
+        margin-top: 12px;
+        font-size: 0.9rem;
+        color: #444;
+      }
+      .topbar-note {
+        margin-left: 8px;
+        font-size: 0.9rem;
+        color: #666;
+      }
+      footer {
+        margin-top: 18px;
+        font-size: 0.85rem;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>LoL Champions — Laura / Steven / Dennis</h1>
+      <div class="topbar-note">
+        Klicke ein Bild → markiert als gewonnen (ausgegraut).
+      </div>
+
+      <div id="controls">
+        <button id="btn-refresh" class="small" title="Neu laden">
+          Neu laden
+        </button>
+        <button id="btn-clear" class="small" title="Alle Markierungen löschen">
+          Alle löschen
+        </button>
+      </div>
+    </header>
+
+    <div>
+      <button class="profile-btn" data-player="laura">Laura</button>
+      <button class="profile-btn" data-player="steven">Steven</button>
+      <button class="profile-btn" data-player="dennis">Dennis</button>
+      <span
+        id="mode-indicator"
+        style="margin-left: 12px; color: #666; font-size: 0.95rem"
+      ></span>
+    </div>
+
+    <main>
+      <div id="champion-container" aria-live="polite"></div>
+      <div id="status"></div>
+    </main>
+
+    <footer>
+      <div>
+        Speicherung:
+        <strong id="storage-mode">Firebase (noch nicht verbunden)</strong>
+      </div>
+      <div style="margin-top: 6px">
+        Hinweis: Die App verwendet Riot Data Dragon zur Anzeige der
+        Championbilder. Du musst für Firebase ein Projekt anlegen und die Config
+        unten einfügen.
+      </div>
+    </footer>
+
+    <!-- Firebase (Modular v9) - using CDN modules (will work in modern browsers supporting modules) -->
+    <script type="module">
+      // ============================
+      // === KONFIGURATION =========
+      // ============================
+      // 1) Erstelle ein Firebase-Projekt (https://console.firebase.google.com/)
+      // 2) Aktiviere Firestore (Native mode) oder Realtime DB (hier verwenden wir Firestore)
+      // 3) Optional: Aktiviere Authentication (z.B. Email / Anonymous) für bessere Sicherheit.
+      // 4) Ersetze die Werte in firebaseConfig mit deinen Projektwerten.
+      const firebaseConfig = {
+        apiKey: "AIzaSyAbK1Q1EJZW6ThL9ZxrVy5snjpJUgbUtok",
+        authDomain: "championselect-959ee.firebaseapp.com",
+        projectId: "championselect-959ee",
+        storageBucket: "championselect-959ee.firebasestorage.app",
+        messagingSenderId: "791053032351",
+        appId: "1:791053032351:web:52a09f547c1ec09a4abbaa",
+      };
+
+      // Wenn du Firebase NICHT verwenden willst, setze useFirebase=false und die App speichert lokal.
+      const useFirebase = true;
+
+      // ============================
+      // === Ende Konfiguration =====
+      // ============================
+
+      // Imports (Firebase modular)
+      let app, db, auth;
+      if (useFirebase) {
+        try {
+          const [
+            { initializeApp },
+            { getFirestore, doc, getDoc, setDoc, onSnapshot },
+            { getAuth, signInAnonymously, onAuthStateChanged },
+          ] = await Promise.all([
+            import("https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"),
+            import(
+              "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+            ),
+            import(
+              "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"
+            ),
+          ]);
+          app = initializeApp(firebaseConfig);
+          db = getFirestore(app);
+          auth = getAuth(app);
+          // sign in anonymously so writes are authenticated (recommended)
+          signInAnonymously(auth).catch((err) => {
+            console.warn("Anonymous sign-in failed:", err);
+          });
+          document.getElementById("storage-mode").textContent =
+            "Firebase (verbunden wird versucht)";
+        } catch (err) {
+          console.error("Firebase laden fehlgeschlagen", err);
+          document.getElementById("storage-mode").textContent =
+            "Firebase (Fehler beim Laden) — Fallback: localStorage";
+        }
+      } else {
+        document.getElementById("storage-mode").textContent =
+          "localStorage (kein Firebase)";
+      }
+
+      // ------------------------------
+      // Data Dragon: hole neueste Version und Champion-Liste
+      // ------------------------------
+      const statusEl = document.getElementById("status");
+      const container = document.getElementById("champion-container");
+      const modeIndicator = document.getElementById("mode-indicator");
+
+      let latestVersion = null;
+      let champions = []; // array of champ keys
+      let currentPlayer = "laura";
+      let wonSet = new Set();
+      let unsubscribeSnapshot = null;
+      let debounceSaveTimer = null;
+
+      const players = ["laura", "steven", "dennis"];
+
+      // UI: profile buttons
+      document.querySelectorAll(".profile-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".profile-btn")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentPlayer = btn.dataset.player;
+          loadProfile(currentPlayer);
+        });
+      });
+      // activate default
+      document
+        .querySelector('.profile-btn[data-player="laura"]')
+        .classList.add("active");
+
+      document.getElementById("btn-refresh").addEventListener("click", () => {
+        loadAllChamps();
+        setStatus("Neu geladen.");
+      });
+      document.getElementById("btn-clear").addEventListener("click", () => {
+        if (!confirm("Alle Markierungen für " + currentPlayer + " löschen?"))
+          return;
+        wonSet.clear();
+        renderChampGrid();
+        saveProfile();
+      });
+
+      function setStatus(text) {
+        statusEl.textContent = text || "";
+      }
+
+      async function fetchLatestVersion() {
+        try {
+          // Data Dragon versions endpoint (empfohlen von Riot docs)
+          const res = await fetch(
+            "https://ddragon.leagueoflegends.com/api/versions.json"
+          );
+          const versions = await res.json();
+          if (Array.isArray(versions) && versions.length > 0) {
+            latestVersion = versions[0];
+            return latestVersion;
+          }
+        } catch (e) {
+          console.warn("Versions fetch failed", e);
+        }
+        // fallback: hardcoded known version (falls offline)
+        latestVersion = "14.20.1";
+        return latestVersion;
+      }
+
+      async function loadAllChamps() {
+        setStatus("Lade Champions ...");
+        try {
+          const version = await fetchLatestVersion();
+          modeIndicator.textContent = `DataDragon v${version}`;
+          const dataUrl = `https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`;
+          const res = await fetch(dataUrl);
+          const data = await res.json();
+          // data.data is an object mapping keys like "Aatrox" -> {...}
+          champions = Object.keys(data.data).sort((a, b) => {
+            const A = data.data[a].name || a;
+            const B = data.data[b].name || b;
+            return A.localeCompare(B);
+          });
+          renderChampGrid();
+          setStatus("Champions geladen: " + champions.length);
+        } catch (err) {
+          console.error("Champions laden fehlgeschlagen", err);
+          setStatus("Fehler beim Laden der Champions. (Offline?)");
+        }
+      }
+
+      function renderChampGrid() {
+        container.innerHTML = "";
+        if (!champions || champions.length === 0) {
+          container.textContent = "Keine Champions geladen.";
+          return;
+        }
+        const imgBase = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/`;
+        champions.forEach((key) => {
+          const img = document.createElement("img");
+          img.className = "champ";
+          img.src = `${imgBase}${key}.png`;
+          img.alt = key;
+          img.dataset.champ = key;
+          if (wonSet.has(key)) img.classList.add("won");
+          img.addEventListener("click", () => {
+            if (wonSet.has(key)) wonSet.delete(key);
+            else wonSet.add(key);
+            img.classList.toggle("won");
+            saveProfile(); // speichere Änderungen (debounced)
+          });
+          container.appendChild(img);
+        });
+      }
+
+      // ------------------------------
+      // Firestore: Profile load/save
+      // ------------------------------
+      async function loadProfile(playerName) {
+        // unsubscribe previous listener
+        if (unsubscribeSnapshot) {
+          unsubscribeSnapshot();
+          unsubscribeSnapshot = null;
+        }
+        setStatus("Lade Profil " + playerName + " ...");
+        wonSet.clear();
+        renderChampGrid();
+
+        // try to use Firebase Firestore if available
+        if (useFirebase && typeof db !== "undefined") {
+          try {
+            const { doc, getDoc, onSnapshot } = await import(
+              "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+            );
+            const profileDocRef = doc(db, "profiles", playerName);
+            // live update
+            unsubscribeSnapshot = onSnapshot(profileDocRef, (snap) => {
+              if (snap.exists()) {
+                const data = snap.data();
+                const arr = Array.isArray(data.won) ? data.won : [];
+                wonSet = new Set(arr);
+              } else {
+                wonSet = new Set();
+              }
+              renderChampGrid();
+              setStatus("Profil geladen (Firebase).");
+              document.getElementById("storage-mode").textContent =
+                "Firebase (Realtime)";
+            });
+            return;
+          } catch (err) {
+            console.warn("Firestore read error / dynamic import failed:", err);
+          }
+        }
+
+        // fallback: localStorage
+        const saved = localStorage.getItem("lol_won_" + playerName);
+        if (saved) {
+          try {
+            const arr = JSON.parse(saved);
+            wonSet = new Set(Array.isArray(arr) ? arr : []);
+          } catch (e) {
+            wonSet = new Set();
+          }
+        } else {
+          wonSet = new Set();
+        }
+        renderChampGrid();
+        setStatus("Profil geladen (localStorage).");
+        document.getElementById("storage-mode").textContent = "localStorage";
+      }
+
+      async function saveProfile() {
+        // debounce writes (avoid too many writes)
+        if (debounceSaveTimer) clearTimeout(debounceSaveTimer);
+        debounceSaveTimer = setTimeout(async () => {
+          const arr = Array.from(wonSet);
+          // try firestore
+          if (useFirebase && typeof db !== "undefined") {
+            try {
+              const { doc, setDoc } = await import(
+                "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+              );
+              const profileDocRef = doc(db, "profiles", currentPlayer);
+              await setDoc(profileDocRef, { won: arr }, { merge: true });
+              setStatus("Profil gespeichert (Firebase).");
+              document.getElementById("storage-mode").textContent =
+                "Firebase (gespeichert)";
+              return;
+            } catch (err) {
+              console.warn("Firestore write failed", err);
+              setStatus(
+                "Fehler beim Speichern in Firebase — fallback auf localStorage."
+              );
+            }
+          }
+          // fallback to localStorage
+          localStorage.setItem("lol_won_" + currentPlayer, JSON.stringify(arr));
+          document.getElementById("storage-mode").textContent =
+            "localStorage (gespeichert)";
+          setStatus("Profil gespeichert (localStorage).");
+        }, 350);
+      }
+
+      // Start
+      await loadAllChamps();
+      loadProfile(currentPlayer);
+
+      // initial Firebase auth state display (optional)
+      if (useFirebase && typeof auth !== "undefined") {
+        const { onAuthStateChanged } = await import(
+          "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"
+        );
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            // user.uid is available for potential ownership/security
+            console.log("Firebase user UID:", user.uid);
+          } else {
+            console.log("Keine Firebase Auth");
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
