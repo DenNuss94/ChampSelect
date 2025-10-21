@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="de">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>LoL Champions - Laura / Steven / Dennis</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LoL Champions Tracker</title>
     <style>
       :root {
-        --gap: 10px;
+        --gap: 15px;
         --thumb-size: 84px;
       }
       body {
@@ -24,27 +24,71 @@
         margin-bottom: 12px;
       }
       .profile-btn {
-        padding: 10px 20px; /* Größe des Buttons */
-        border-radius: 12px; /* abgerundete Ecken */
-        border: none; /* keine Standard-Grenze */
-        background-color: gray; /* schöne grüne Farbe */
-        color: white; /* Textfarbe */
-        font-weight: bold; /* fettgedruckt */
-        cursor: pointer; /* Hand-Cursor beim Hover */
-        transition: all 0.3s ease; /* sanfte Animation bei Hover */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* leichter Schatten */
+        padding: 10px 20px;
+        border-radius: 12px;
+        border: none;
+        background-color: gray;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
-
       .profile-btn:hover {
-        background-color: #1eac25; /* dunkleres Grün beim Hover */
-        transform: translateY(-2px); /* kleine Aufwärtsbewegung */
-        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* Schatten etwas verstärken */
+        background-color: #1eac25;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
       }
-
       .profile-btn.active {
         background-color: #45a049;
-        transform: translateY(0); /* zurück beim Klicken */
+        transform: translateY(0);
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .buttons {
+        display: flex;
+        justify-content: center;
+        gap: 46px;
+        margin-top: 20px;
+      }
+      #champion-container {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fill,
+          minmax(var(--thumb-size), 1fr)
+        );
+        gap: var(--gap);
+        justify-items: center;
+        padding: 20px 0;
+      }
+      .champ {
+        width: 100%;
+        aspect-ratio: 1/1;
+        object-fit: contain;
+        border-radius: 8px;
+        background: white;
+        padding: 6px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+        cursor: pointer;
+        transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+      }
+      .champ:hover {
+        transform: translateY(-4px);
+      }
+      .champ.won {
+        filter: grayscale(100%);
+        opacity: 0.55;
+      }
+      #status {
+        margin-top: 12px;
+        font-size: 0.9rem;
+        color: #444;
+        text-align: center;
+      }
+      footer {
+        margin-top: 18px;
+        font-size: 0.85rem;
+        color: #666;
+        text-align: center;
       }
       #controls {
         margin-left: auto;
@@ -58,65 +102,11 @@
         background: white;
         cursor: pointer;
       }
-      #champion-container {
-        display: grid;
-        grid-template-columns: repeat(
-          auto-fill,
-          minmax(var(--thumb-size), 1fr)
-        );
-        gap: var(--gap);
-        align-items: center;
-      }
-      .champ {
-        width: 100%;
-        aspect-ratio: 1/1;
-        object-fit: contain;
-        border-radius: 6px;
-        background: white;
-        padding: 6px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-        cursor: pointer;
-        display: block;
-        transition: transform 0.5s ease, filter 0.2s ease, opacity 0.2s ease;
-      }
-      .champ:hover {
-        transform: translateY(-4px);
-      }
-      .champ.won {
-        filter: grayscale(100%);
-        opacity: 0.55;
-      }
-      #status {
-        margin-top: 12px;
-        font-size: 0.9rem;
-        color: #444;
-      }
-      .topbar-note {
-        margin-left: 8px;
-        font-size: 0.9rem;
-        color: #666;
-      }
-      footer {
-        margin-top: 18px;
-        font-size: 0.85rem;
-        color: #666;
-      }
-
-      .buttons {
-        display: flex; /* Flexbox aktivieren */
-        justify-content: center; /* Horizontale Zentrierung */
-        gap: 46px; /* Abstand zwischen den Buttons */
-        margin-top: 20px; /* Optional: Abstand zum oberen Rand */
-      }
     </style>
   </head>
   <body>
     <header>
       <h1>A - Z Challenge</h1>
-      <div class="topbar-note">
-        Klicke ein Bild → markiert als gewonnen (ausgegraut).
-      </div>
-
       <div id="controls">
         <button id="btn-refresh" class="small" title="Neu laden">
           Neu laden
@@ -131,52 +121,44 @@
       <button class="profile-btn" data-player="laura">Laura</button>
       <button class="profile-btn" data-player="steven">Steven</button>
       <button class="profile-btn" data-player="dennis">Dennis</button>
-      <span
-        id="mode-indicator"
-        style="margin-left: 12px; color: #666; font-size: 0.95rem"
-      ></span>
     </div>
-    <br />
 
     <main>
-      <div id="champion-container" aria-live="polite"></div>
-      <div id="status"></div>
+      <div id="champion-container"></div>
+      <div id="status">Lade Champions …</div>
     </main>
 
     <footer>
-      <div>
-        Speicherung:
-        <strong id="storage-mode">Firebase (noch nicht verbunden)</strong>
-      </div>
+      Speicherung:
+      <strong id="storage-mode">Firebase (noch nicht verbunden)</strong>
     </footer>
 
-    <!-- Firebase (Modular v9) - using CDN modules (will work in modern browsers supporting modules) -->
     <script type="module">
-      // ============================
-      // === KONFIGURATION =========
-      // ============================
-      // 1) Erstelle ein Firebase-Projekt (https://console.firebase.google.com/)
-      // 2) Aktiviere Firestore (Native mode) oder Realtime DB (hier verwenden wir Firestore)
-      // 3) Optional: Aktiviere Authentication (z.B. Email / Anonymous) für bessere Sicherheit.
-      // 4) Ersetze die Werte in firebaseConfig mit deinen Projektwerten.
+      // ================= CONFIG =================
       const firebaseConfig = {
         apiKey: "AIzaSyAbK1Q1EJZW6ThL9ZxrVy5snjpJUgbUtok",
         authDomain: "championselect-959ee.firebaseapp.com",
         projectId: "championselect-959ee",
-        storageBucket: "championselect-959ee.firebasestorage.app",
+        storageBucket: "championselect-959ee.appspot.com",
         messagingSenderId: "791053032351",
         appId: "1:791053032351:web:52a09f547c1ec09a4abbaa",
       };
-
-      // Wenn du Firebase NICHT verwenden willst, setze useFirebase=false und die App speichert lokal.
       const useFirebase = true;
+      // ==========================================
 
-      // ============================
-      // === Ende Konfiguration =====
-      // ============================
+      let champions = [];
+      let latestVersion = null;
+      let currentPlayer = "laura";
+      let wonSet = new Set();
+      let db,
+        auth,
+        unsubscribeSnapshot = null;
+      let debounceSaveTimer = null;
 
-      // Imports (Firebase modular)
-      let app, db, auth;
+      const container = document.getElementById("champion-container");
+      const statusEl = document.getElementById("status");
+
+      // ===== Firebase initialisieren =====
       if (useFirebase) {
         try {
           const [
@@ -192,42 +174,28 @@
               "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"
             ),
           ]);
-          app = initializeApp(firebaseConfig);
+          const app = initializeApp(firebaseConfig);
           db = getFirestore(app);
           auth = getAuth(app);
-          // sign in anonymously so writes are authenticated (recommended)
-          signInAnonymously(auth).catch((err) => {
-            console.warn("Anonymous sign-in failed:", err);
-          });
+          signInAnonymously(auth).catch(console.warn);
           document.getElementById("storage-mode").textContent =
             "Firebase (verbunden wird versucht)";
         } catch (err) {
-          console.error("Firebase laden fehlgeschlagen", err);
+          console.error("Firebase Fehler", err);
           document.getElementById("storage-mode").textContent =
-            "Firebase (Fehler beim Laden) — Fallback: localStorage";
+            "Fehler Firebase – fallback localStorage";
         }
       } else {
         document.getElementById("storage-mode").textContent =
           "localStorage (kein Firebase)";
       }
 
-      // ------------------------------
-      // Data Dragon: hole neueste Version und Champion-Liste
-      // ------------------------------
-      const statusEl = document.getElementById("status");
-      const container = document.getElementById("champion-container");
-      const modeIndicator = document.getElementById("mode-indicator");
+      // ===== Status helper =====
+      function setStatus(msg) {
+        statusEl.textContent = msg || "";
+      }
 
-      let latestVersion = null;
-      let champions = []; // array of champ keys
-      let currentPlayer = "laura";
-      let wonSet = new Set();
-      let unsubscribeSnapshot = null;
-      let debounceSaveTimer = null;
-
-      const players = ["laura", "steven", "dennis"];
-
-      // UI: profile buttons
+      // ===== Profile Buttons =====
       document.querySelectorAll(".profile-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           document
@@ -238,15 +206,13 @@
           loadProfile(currentPlayer);
         });
       });
-      // activate default
       document
         .querySelector('.profile-btn[data-player="laura"]')
         .classList.add("active");
 
-      document.getElementById("btn-refresh").addEventListener("click", () => {
-        loadAllChamps();
-        setStatus("Neu geladen.");
-      });
+      document
+        .getElementById("btn-refresh")
+        .addEventListener("click", () => loadAllChamps());
       document.getElementById("btn-clear").addEventListener("click", () => {
         if (!confirm("Alle Markierungen für " + currentPlayer + " löschen?"))
           return;
@@ -255,182 +221,129 @@
         saveProfile();
       });
 
-      function setStatus(text) {
-        statusEl.textContent = text || "";
-      }
-
-      async function fetchLatestVersion() {
+      // ===== Load Champions =====
+      async function loadAllChamps() {
+        setStatus("Lade Champions …");
         try {
-          // Data Dragon versions endpoint (empfohlen von Riot docs)
-          const res = await fetch(
+          const vres = await fetch(
             "https://ddragon.leagueoflegends.com/api/versions.json"
           );
-          const versions = await res.json();
-          if (Array.isArray(versions) && versions.length > 0) {
-            latestVersion = versions[0];
-            return latestVersion;
-          }
-        } catch (e) {
-          console.warn("Versions fetch failed", e);
-        }
-        // fallback: hardcoded known version (falls offline)
-        latestVersion = "14.20.1";
-        return latestVersion;
-      }
+          const versions = await vres.json();
+          latestVersion = versions[0];
 
-      async function loadAllChamps() {
-        setStatus("Lade Champions ...");
-        try {
-          const version = await fetchLatestVersion();
-          //modeIndicator.textContent = `DataDragon v${version}`;
-          const dataUrl = `https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`;
-          const res = await fetch(dataUrl);
-          const data = await res.json();
-          // data.data is an object mapping keys like "Aatrox" -> {...}
+          const cres = await fetch(
+            `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion.json`
+          );
+          const data = await cres.json();
+
           champions = Object.keys(data.data).sort((a, b) => {
             const A = data.data[a].name || a;
             const B = data.data[b].name || b;
             return A.localeCompare(B);
           });
+
           renderChampGrid();
           setStatus("Champions geladen: " + champions.length);
-        } catch (err) {
-          console.error("Champions laden fehlgeschlagen", err);
-          setStatus("Fehler beim Laden der Champions. (Offline?)");
+        } catch (e) {
+          console.error(e);
+          setStatus("Fehler beim Laden der Champions.");
         }
       }
 
+      // ===== Render Champions =====
       function renderChampGrid() {
         container.innerHTML = "";
         if (!champions || champions.length === 0) {
           container.textContent = "Keine Champions geladen.";
           return;
         }
-        const imgBase = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/`;
-        champions.forEach((key) => {
+
+        champions.forEach((champKey) => {
           const img = document.createElement("img");
-          img.className = "champ";
-          img.src = `${imgBase}${key}.png`;
-          img.alt = key;
-          img.dataset.champ = key;
-          if (wonSet.has(key)) img.classList.add("won");
+          img.src = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/${champKey}.png`;
+          img.alt = champKey;
+          img.classList.add("champ");
+
+          if (wonSet.has(champKey)) img.classList.add("won");
+
           img.addEventListener("click", () => {
-            if (wonSet.has(key)) wonSet.delete(key);
-            else wonSet.add(key);
-            img.classList.toggle("won");
-            saveProfile(); // speichere Änderungen (debounced)
+            if (wonSet.has(champKey)) wonSet.delete(champKey);
+            else wonSet.add(champKey);
+            saveProfile();
+            renderChampGrid();
           });
+
           container.appendChild(img);
         });
       }
 
-      // ------------------------------
-      // Firestore: Profile load/save
-      // ------------------------------
+      // ===== Profile Load / Save =====
       async function loadProfile(playerName) {
-        // unsubscribe previous listener
         if (unsubscribeSnapshot) {
           unsubscribeSnapshot();
           unsubscribeSnapshot = null;
         }
-        setStatus("Lade Profil " + playerName + " ...");
+        setStatus("Lade Profil " + playerName + " …");
         wonSet.clear();
         renderChampGrid();
 
-        // try to use Firebase Firestore if available
-        if (useFirebase && typeof db !== "undefined") {
+        if (useFirebase && db) {
           try {
-            const { doc, getDoc, onSnapshot } = await import(
+            const { doc, onSnapshot } = await import(
               "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
             );
             const profileDocRef = doc(db, "profiles", playerName);
-            // live update
             unsubscribeSnapshot = onSnapshot(profileDocRef, (snap) => {
-              if (snap.exists()) {
-                const data = snap.data();
-                const arr = Array.isArray(data.won) ? data.won : [];
-                wonSet = new Set(arr);
-              } else {
-                wonSet = new Set();
-              }
+              wonSet =
+                snap.exists() && Array.isArray(snap.data().won)
+                  ? new Set(snap.data().won)
+                  : new Set();
               renderChampGrid();
-              setStatus("Profil geladen (Firebase).");
-              document.getElementById("storage-mode").textContent =
-                "Firebase (Realtime)";
+              setStatus("Profil geladen (Firebase)");
             });
             return;
-          } catch (err) {
-            console.warn("Firestore read error / dynamic import failed:", err);
+          } catch (e) {
+            console.warn("Firestore read error", e);
           }
         }
 
-        // fallback: localStorage
         const saved = localStorage.getItem("lol_won_" + playerName);
         if (saved) {
           try {
-            const arr = JSON.parse(saved);
-            wonSet = new Set(Array.isArray(arr) ? arr : []);
+            wonSet = new Set(JSON.parse(saved));
           } catch (e) {
             wonSet = new Set();
           }
-        } else {
-          wonSet = new Set();
         }
         renderChampGrid();
-        setStatus("Profil geladen (localStorage).");
-        document.getElementById("storage-mode").textContent = "localStorage";
+        setStatus("Profil geladen (localStorage)");
       }
 
-      async function saveProfile() {
-        // debounce writes (avoid too many writes)
+      function saveProfile() {
         if (debounceSaveTimer) clearTimeout(debounceSaveTimer);
         debounceSaveTimer = setTimeout(async () => {
           const arr = Array.from(wonSet);
-          // try firestore
-          if (useFirebase && typeof db !== "undefined") {
+          if (useFirebase && db) {
             try {
               const { doc, setDoc } = await import(
                 "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
               );
               const profileDocRef = doc(db, "profiles", currentPlayer);
               await setDoc(profileDocRef, { won: arr }, { merge: true });
-              setStatus("Profil gespeichert (Firebase).");
-              document.getElementById("storage-mode").textContent =
-                "Firebase (gespeichert)";
+              setStatus("Profil gespeichert (Firebase)");
               return;
-            } catch (err) {
-              console.warn("Firestore write failed", err);
-              setStatus(
-                "Fehler beim Speichern in Firebase — fallback auf localStorage."
-              );
+            } catch (e) {
+              console.warn("Firestore write failed", e);
             }
           }
-          // fallback to localStorage
           localStorage.setItem("lol_won_" + currentPlayer, JSON.stringify(arr));
-          document.getElementById("storage-mode").textContent =
-            "localStorage (gespeichert)";
-          setStatus("Profil gespeichert (localStorage).");
+          setStatus("Profil gespeichert (localStorage)");
         }, 350);
       }
 
-      // Start
+      // ===== Start =====
       await loadAllChamps();
       loadProfile(currentPlayer);
-
-      // initial Firebase auth state display (optional)
-      if (useFirebase && typeof auth !== "undefined") {
-        const { onAuthStateChanged } = await import(
-          "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"
-        );
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            // user.uid is available for potential ownership/security
-            console.log("Firebase user UID:", user.uid);
-          } else {
-            console.log("Keine Firebase Auth");
-          }
-        });
-      }
     </script>
   </body>
 </html>
