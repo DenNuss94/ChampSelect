@@ -179,7 +179,7 @@
           auth = getAuth(app);
           signInAnonymously(auth).catch(console.warn);
           document.getElementById("storage-mode").textContent =
-            "Firebase (verbunden wird versucht)";
+            "Firebase";
         } catch (err) {
           console.error("Firebase Fehler", err);
           document.getElementById("storage-mode").textContent =
@@ -347,3 +347,4 @@
     </script>
   </body>
 </html>
+
